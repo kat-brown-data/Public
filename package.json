@@ -1,0 +1,6 @@
+{
+  "name": "kat_walker_data_portfolio",
+  "dependencies": {
+    "@dataform/core": "2.4.2"
+  }
+}
