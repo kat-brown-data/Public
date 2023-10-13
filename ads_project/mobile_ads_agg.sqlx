@@ -1,0 +1,52 @@
+--Project made in BigQuery/DataForm
+config {
+    type: "table",
+}
+
+  -- Create or replace a table named ads_agg_data, replace names with your project/dataset
+CREATE OR REPLACE TABLE
+  astute-heaven-400708.sql_test_ads_m.ad_agg_data AS
+  -- Combine and aggregate data from each ad channel's table; each campaign needs to be running on the same dates with the same campaign names accross channels for this to work
+WITH
+  combined_data AS (
+  SELECT
+    COALESCE(f.Date, g.Date, a.Date) AS Date,
+    COALESCE(f.Campaign_Name, g.Campaign_Name, a.Campaign_Name) AS Campaign_Name,
+    SUM(COALESCE(f.Total_Cost, 0) + COALESCE(g.Total_Cost, 0) + COALESCE(a.Spend, 0)) AS Total_Cost,
+    SUM(COALESCE(f.Impressions, 0) + COALESCE(g.Impressions, 0) + COALESCE(a.Impressions, 0)) AS Impressions,
+    SUM(COALESCE(f.Clicks, 0) + COALESCE(g.Clicks, 0) + COALESCE(a.Taps, 0)) AS Clicks,
+    SUM(COALESCE(f.Conversions, 0) + COALESCE(g.Conversions, 0) + COALESCE(a.Installs, 0)) AS Conversions
+  FROM
+    astute-heaven-400708.sql_test_ads_m.fb_table f
+  FULL OUTER JOIN
+    astute-heaven-400708.sql_test_ads_m.ga_table g
+  ON
+    f.Campaign_Name = g.Campaign_Name
+    AND f.Date = g.Date
+  FULL OUTER JOIN
+    astute-heaven-400708.sql_test_ads_m.asa_table a
+  ON
+    f.Campaign_Name = a.Campaign_Name
+    AND f.Date = a.Date
+  GROUP BY
+    Date,
+    Campaign_Name )
+    -- calculate metrics and display results
+SELECT
+  Date,
+  Campaign_Name,
+  ROUND(Total_Cost, 2) AS Total_Cost,
+  Impressions,
+  Clicks,
+  Conversions,
+  -- Calculate and format CPC, CPI, CTR, CR
+  ROUND(Total_Cost / NULLIF(Clicks, 0), 2) AS CPC,
+  ROUND(Total_Cost / NULLIF(Conversions, 0), 2) AS CPI,
+  ROUND((Clicks / NULLIF(Impressions, 0)) * 100, 2) AS CTR,
+  ROUND((Conversions / NULLIF(Clicks, 0)) * 100, 2) AS CR
+FROM
+  combined_data
+  --order by date starting with most recent, display campaigns in same order every time
+ORDER BY
+  Date DESC,
+  Campaign_Name
