@@ -1,0 +1,60 @@
+-- Project made in BigQuery & Dataform
+config {
+    type: "table",
+}
+
+-- Create or replace a table named covid_data_table_dr, replace names with your project/dataset
+CREATE OR REPLACE TABLE astute-heaven-400708.covid_data.covid_data_table_dr AS
+
+-- CTE named TotalNumbers:
+-- Calculate the highest cumulative confirmed cases value and most recent date for each country
+WITH TotalNumbers AS (
+  SELECT
+    country_name,
+    MAX(cumulative_confirmed) AS max_confirmed,
+    MAX(date) AS max_date
+--get data from bigquery public dataset covid19_open_data
+  FROM
+    `bigquery-public-data.covid19_open_data.covid19_open_data`
+  WHERE
+    cumulative_confirmed IS NOT NULL  -- Filter out rows where there is no cumulative confirmed case data
+    AND cumulative_deceased IS NOT NULL  -- Filter out rows where there is no cumulative deceased case data
+    AND date IS NOT NULL  -- Filter out rows where the date is not max_date (this is to remove duplicates)
+  GROUP BY
+    country_name
+)
+
+-- Main query:
+SELECT
+  c.country_name,
+  c.date,
+  c.population,
+  c.cumulative_confirmed,
+  c.cumulative_deceased,
+  
+  -- Calculate the total death rate (cumulative deceased / population) and round to 5 decimal places
+  ROUND(c.cumulative_deceased / NULLIF(population, 0), 5) AS total_death_rate,
+  
+  -- Calculate the infected death rate (cumulative deceased / cumulative confirmed) and round to 4 decimal places
+  ROUND(c.cumulative_deceased / NULLIF(c.cumulative_confirmed, 0), 4) AS infected_death_rate
+FROM
+  `bigquery-public-data.covid19_open_data.covid19_open_data` AS c
+
+-- Join with the TotalNumbers CTE based on country_name, maximum cumulative confirmed cases, and maximum date
+JOIN
+  TotalNumbers AS tn
+ON
+  c.country_name = tn.country_name
+  AND c.cumulative_confirmed = tn.max_confirmed
+  AND c.date = tn.max_date
+
+-- Filter rows where data points are not null
+WHERE
+  c.cumulative_confirmed IS NOT NULL
+  AND c.cumulative_deceased IS NOT NULL
+  AND c.date IS NOT NULL
+
+-- Order the results by infected death rate (in descending order) and total death rate (in descending order)
+ORDER BY
+  infected_death_rate DESC,
+  total_death_rate DESC
