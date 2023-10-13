@@ -1,0 +1,5 @@
+#Project Description
+This project uses BigQuery's public covid data (through Sep 2022) to compare national population, confirmed cases, confirmed deaths, and death rates. 
+The idea is to see if a nation's population has any correlation with its  death rate (ie, if cramped conditions lead to more death). 
+The analysis portion of this will be coming soon, this code is just pulling and cleaning the data (most notably, the most recent report for each country is different 
+and there and numerous entries for some countires on the same day, some with only partial numbers, so the right date needed to be selected and excess reports removed)
