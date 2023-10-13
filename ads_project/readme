@@ -2,4 +2,4 @@
 The goal of this program is to process and aggregate campaign performance data from Apple Search Ads, Google Ads, and Facebook Ads into an easy to use form. Note that this code assumes
 that your campaign names are the same accross platforms. The program takes the raw data downloads from each platform as inputs (examples have been provided). Note that my sample files
 are very simplistic and contain only the critical information for this project; your real downloads will contain more columns (depending on your settings) but just ignore them.
-do check your column headers before using the code and switch out any that don't match as some platforms allow you to report the same information under different names (especially GA).
+Do check your column headers before using the code and switch out any that don't match as some platforms allow you to report the same information under different names (especially GA).
