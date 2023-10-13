@@ -1,3 +1,4 @@
+-- Project made in BigQuery & Dataform
 config {
     type: "table",
 }
